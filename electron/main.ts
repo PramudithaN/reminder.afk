@@ -35,6 +35,7 @@ function createWindow() {
     fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+      autoplayPolicy: 'no-user-gesture-required'
     },
   })
   

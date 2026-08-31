@@ -1,30 +1,68 @@
-# React + TypeScript + Vite
+# AFK Reminder
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Electron](https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Three.js](https://img.shields.io/badge/ThreeJs-black?style=for-the-badge&logo=three.js&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+A smart, visually engaging, and highly customizable desktop break reminder built with **Electron**, **React**, and **React Three Fiber**. 
 
-Currently, two official plugins are available:
+This application is designed specifically for developers and power users to prevent optical fatigue (following the 20-20-20 rule) and combat the health risks associated with prolonged sitting. When a scheduled break is triggered, a fully animated 3D character renders directly over the active workspace utilizing a frameless, transparent window. The application enforces breaks through a combination of screen dimming and synthesized audio alerts to ensure focus is successfully interrupted.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Key Features
 
-## Expanding the ESLint configuration
+* **3D Animated Characters**: Choose an active rendering entity (Robot, Spider-Man, or Venom). The models are fully interactive; click and drag anywhere on the screen to rotate and inspect them in 3D space.
+* **Developer-Themed UI**: The break notifications are designed to mimic a dark-mode IDE or terminal environment (e.g., `Kernel Panic: Prolonged Sedentary State`), integrating seamlessly into a developer's workflow.
+* **Smart Multi-Monitor Support**: For multi-display setups, the application dynamically detects the user's active cursor location and routes the break reminder directly to the active display immediately before triggering.
+* **High-Contrast Alerts**: Utilizes a full-screen backdrop filter and custom Web Audio API synthesized alerts to capture user attention effectively.
+* **Configuration Panel**: A Material Design settings modal allows users to configure specific intervals for both Optical Rest and Mobility Stretches, as well as hot-swap the active 3D model.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Health Protocols
 
-- Configure the top-level `parserOptions` property like this:
+1. **Optical Rest (Eye Breaks)**: Defaults to 20 minutes. Adheres to the 20-20-20 rule: Every 20 minutes, shift focus to an object 20 feet away for 20 seconds.
+2. **Mobility (Stretch Breaks)**: Defaults to 60 minutes. Recommends stepping away from the workstation to stretch and maintain proper vascular circulation.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+## Getting Started
+
+### Prerequisites
+Ensure [Node.js](https://nodejs.org/) is installed on the host machine.
+
+### Installation
+Clone the repository and install the required dependencies:
+```bash
+git clone <your-repo-url>
+cd reminder.afk
+npm install
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+### Running in Development
+To run the application locally with hot-reloading enabled:
+```bash
+npm run dev
+```
+
+## Building for Production
+
+The application can be packaged into a standalone `.exe` installer, allowing it to run silently in the background on system startup without relying on a terminal instance.
+
+Execute the following command:
+```bash
+npm run build
+```
+
+**Windows Build Requirements:**
+The `electron-builder` package requires administrative privileges to create symbolic links during the packaging process. If the build fails with a `Cannot create symbolic link` error, perform one of the following:
+1. **(Recommended)** Navigate to Windows Settings -> Privacy & security -> For developers, and enable **Developer Mode**.
+2. **Alternative**: Launch your Terminal or IDE as an **Administrator** prior to running the build command.
+
+Upon successful completion, the generated setup executable will be located in the `release/` directory.
+
+## Technology Stack
+
+* [Electron](https://www.electronjs.org/) - Desktop application framework
+* [React](https://reactjs.org/) & [Vite](https://vitejs.dev/) - Frontend UI and build tooling
+* [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) & [Drei](https://github.com/pmndrs/drei) - 3D rendering pipeline and interactions
+* [Three.js](https://threejs.org/) - Core WebGL engine
+
+---
+*Maintain optimal health, stay hydrated, and resolve your Kernel Panics.*
