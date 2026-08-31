@@ -5,7 +5,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Three.js](https://img.shields.io/badge/ThreeJs-black?style=for-the-badge&logo=three.js&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
-A smart, visually engaging, and highly customizable desktop break reminder built with **Electron**, **React**, and **React Three Fiber**. 
+
+> A smart, visually engaging, and highly customizable desktop break reminder built with **Electron**, **React**, and **React Three Fiber**. 
 
 This application is designed specifically for developers and power users to prevent optical fatigue (following the 20-20-20 rule) and combat the health risks associated with prolonged sitting. When a scheduled break is triggered, a fully animated 3D character renders directly over the active workspace utilizing a frameless, transparent window. The application enforces breaks through a combination of screen dimming and synthesized audio alerts to ensure focus is successfully interrupted.
 
