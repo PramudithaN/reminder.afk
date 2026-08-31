@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, screen } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -50,6 +50,16 @@ function createWindow() {
   ipcMain.on('set-ignore-mouse-events', (_event, ignore) => {
     if (win) {
       win.setIgnoreMouseEvents(ignore, { forward: true })
+    }
+  })
+
+  // Move window to the active monitor when a break starts
+  ipcMain.on('move-to-active-monitor', () => {
+    if (win) {
+      const point = screen.getCursorScreenPoint()
+      const display = screen.getDisplayNearestPoint(point)
+      win.setBounds(display.bounds)
+      win.setFullScreen(true)
     }
   })
 

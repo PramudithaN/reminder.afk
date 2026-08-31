@@ -254,16 +254,27 @@ function App() {
     const eyeMs = eyeInterval * 60 * 1000;
     const stretchMs = stretchInterval * 60 * 1000;
 
+    const triggerBreak = (type: 'eye' | 'stretch') => {
+      if (window.ipcRenderer) {
+        window.ipcRenderer.send('move-to-active-monitor')
+      }
+      setActiveBreak(type)
+    }
+
     const eyeTimer = setInterval(() => {
-      setActiveBreak(prev => prev === 'stretch' ? 'stretch' : 'eye');
+      setActiveBreak(prev => {
+        if (prev === 'stretch') return 'stretch';
+        if (window.ipcRenderer) window.ipcRenderer.send('move-to-active-monitor');
+        return 'eye';
+      });
     }, eyeMs > 0 ? eyeMs : 20 * 60 * 1000)
 
     const stretchTimer = setInterval(() => {
-      setActiveBreak('stretch')
+      triggerBreak('stretch')
     }, stretchMs > 0 ? stretchMs : 60 * 60 * 1000)
 
     // Trigger initially for preview
-    setActiveBreak('eye')
+    triggerBreak('eye')
 
     return () => {
       clearInterval(eyeTimer)
