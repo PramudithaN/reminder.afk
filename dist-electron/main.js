@@ -25,7 +25,7 @@ function createWindow() {
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setIgnoreMouseEvents(true, { forward: true });
   console.log("Window created!");
-  ipcMain.on("set-ignore-mouse-events", (event, ignore) => {
+  ipcMain.on("set-ignore-mouse-events", (_event, ignore) => {
     if (win) {
       win.setIgnoreMouseEvents(ignore, { forward: true });
     }

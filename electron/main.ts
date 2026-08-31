@@ -47,7 +47,7 @@ function createWindow() {
   console.log("Window created!")
 
   // IPC listener for toggling mouse events from React
-  ipcMain.on('set-ignore-mouse-events', (event, ignore) => {
+  ipcMain.on('set-ignore-mouse-events', (_event, ignore) => {
     if (win) {
       win.setIgnoreMouseEvents(ignore, { forward: true })
     }
