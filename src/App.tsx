@@ -162,6 +162,7 @@ function CharacterModel({
   onOpenSettings: () => void
 }) {
   const group = useRef<THREE.Group>(null)
+  const modelWrapper = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(`/${selectedModelFile}`)
   const { actions } = useAnimations(animations, group)
 
@@ -171,6 +172,34 @@ function CharacterModel({
       actions[actionNames[0]]?.play()
     }
   }, [actions, selectedModelFile])
+
+  // Dynamically scale and position the model so it always fits nicely
+  useEffect(() => {
+    if (modelWrapper.current && scene) {
+      if (selectedModelFile === 'robot.glb') {
+        // The robot's original hardcoded scale and position was perfect
+        modelWrapper.current.scale.set(1.5, 1.5, 1.5)
+        modelWrapper.current.position.set(0, -1.5, 0)
+        return
+      }
+
+      // For other models (Spiderman, Venom), automatically normalize their size
+      // to match the visual height of the robot (which is roughly 4.5 units tall)
+      const box = new THREE.Box3().setFromObject(scene)
+      const size = new THREE.Vector3()
+      box.getSize(size)
+      
+      const targetHeight = 4.5
+      
+      if (size.y > 0) {
+        const scale = targetHeight / size.y
+        modelWrapper.current.scale.setScalar(scale)
+        
+        // Use the exact same position as the robot
+        modelWrapper.current.position.set(0, -1.5, 0)
+      }
+    }
+  }, [scene, selectedModelFile])
 
   const isEye = activeBreak === 'eye'
   
@@ -184,12 +213,15 @@ function CharacterModel({
 
   return (
     <Float speed={2} rotationIntensity={0.1} floatIntensity={0.5}>
-      <group ref={group} position={[0, -1.5, 0]} scale={1.5}>
-        <primitive object={scene} />
+      <group ref={group}>
+        <group ref={modelWrapper}>
+          <primitive object={scene} />
+        </group>
       </group>
       
       {/* HTML Speech Bubble */}
-      <Html position={[-4, 3, 0]} center zIndexRange={[100, 0]}>
+      {/* Moved closer to the model but keeping enough space to prevent overlap */}
+      <Html position={[-5.2, 2.5, 0]} center zIndexRange={[100, 0]}>
         <div style={{
           background: 'rgba(17, 24, 39, 0.95)', // dark code editor theme
           backdropFilter: 'blur(8px)',
