@@ -10,6 +10,8 @@
 
 This application is designed specifically for developers and power users to prevent optical fatigue (following the 20-20-20 rule) and combat the health risks associated with prolonged sitting. When a scheduled break is triggered, a fully animated 3D character renders directly over the active workspace utilizing a frameless, transparent window. The application enforces breaks through a combination of screen dimming and synthesized audio alerts to ensure focus is successfully interrupted.
 
+---
+
 ## Key Features
 
 * **3D Animated Characters**: Choose an active rendering entity (Robot, Spider-Man, or Venom). The models are fully interactive; click and drag anywhere on the screen to rotate and inspect them in 3D space.
