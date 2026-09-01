@@ -151,19 +151,32 @@ function createWindow(): void {
   }
 }
 
-// ─── App lifecycle ────────────────────────────────────────────────────────────
+// ─── Single Instance Lock & App lifecycle ─────────────────────────────────────
 
-// Prevent the app from quitting when all windows are closed
-// (it lives in the tray instead)
-app.on('window-all-closed', (e: Event) => {
-  e.preventDefault()
-})
+const gotTheLock = app.requestSingleInstanceLock()
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow()
-})
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
 
-app.whenReady().then(() => {
-  createWindow()
-  createTray()
-})
+  // Prevent the app from quitting when all windows are closed
+  // (it lives in the tray instead)
+  app.on('window-all-closed', (e: Event) => {
+    e.preventDefault()
+  })
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+
+  app.whenReady().then(() => {
+    createWindow()
+    createTray()
+  })
+}
