@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react'
+import { type CSSProperties, Suspense, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
 import { useSettings } from './hooks/useSettings'
@@ -50,14 +50,15 @@ export default function App() {
 
   if (!isVisible) return null
 
-  const dimmerStyle: React.CSSProperties = {
+  const dimmerStyle: CSSProperties = {
     width: '100vw',
     height: '100vh',
     position: 'relative',
     pointerEvents: 'auto',
     background: activeBreak ? 'rgba(0, 0, 0, 0.6)' : 'transparent',
     backdropFilter: activeBreak ? 'blur(6px)' : 'none',
-    transition: 'all 0.5s ease-in-out',
+    WebkitBackdropFilter: activeBreak ? 'blur(6px)' : 'none',
+    transition: 'all 0.4s ease-in-out',
     zIndex: 9999,
   }
 

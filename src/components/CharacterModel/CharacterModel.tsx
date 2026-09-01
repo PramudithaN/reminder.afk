@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, Suspense, useEffect, useRef } from 'react'
+import { Component, type ErrorInfo, type ReactNode, Suspense, useEffect, useRef } from 'react'
 import { Float, Html, PresentationControls, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { SettingsIcon } from '../icons/SettingsIcon'
@@ -40,7 +40,7 @@ class ModelErrorBoundary extends Component<ModelErrorBoundaryProps, ModelErrorBo
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Failed to load or render 3D model:', error, errorInfo)
   }
 
@@ -137,15 +137,14 @@ export function CharacterModel({
         </ModelErrorBoundary>
       </PresentationControls>
 
-      {/* HTML Speech Bubble - renders immediately and stays functional even if 3D model is loading */}
+      {/* HTML Speech Bubble floating synchronously with the character */}
       <Html position={[-5.2, 2.5, 0]} center zIndexRange={[100, 0]}>
         <div
           style={{
-            background: 'rgba(16, 16, 16, 0.96)',
-            backdropFilter: 'blur(12px)',
+            background: '#101010',
             border: '1px solid rgba(255, 255, 255, 0.12)',
             borderRadius: '12px',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
             pointerEvents: 'auto',
             color: '#f3f4f6',
             fontFamily: '"Fira Code", "Consolas", monospace',
@@ -208,11 +207,11 @@ export function CharacterModel({
                 marginTop: '-12px',
                 width: '24px',
                 height: '24px',
-                background: 'rgba(16, 16, 16, 0.96)',
+                background: '#101010',
                 borderRight: `1px solid ${color}`,
                 borderBottom: `1px solid ${color}`,
                 transform: 'rotate(-45deg)',
-                zIndex: -1,
+                zIndex: 1,
               }}
             />
 
