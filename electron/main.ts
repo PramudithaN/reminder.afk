@@ -92,7 +92,9 @@ function createTray(): void {
 // ─── Browser window ───────────────────────────────────────────────────────────
 function createWindow(): void {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    title: '',
+    titleBarStyle: 'hidden',
+    icon: path.join(process.env.VITE_PUBLIC, 'trayIconAFK.png'),
     transparent: true,
     frame: false,
     alwaysOnTop: true,
