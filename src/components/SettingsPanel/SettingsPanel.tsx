@@ -1,0 +1,88 @@
+import { Box, Button, Paper, TextField, ThemeProvider, Typography } from '@mui/material'
+import { MODELS } from '../../constants/models'
+import { InlineSelect } from '../InlineSelect/InlineSelect'
+import theme from '../../theme'
+
+interface SettingsPanelProps {
+  eyeInterval: number
+  setEyeInterval: (v: number) => void
+  stretchInterval: number
+  setStretchInterval: (v: number) => void
+  selectedModel: string
+  setSelectedModel: (v: string) => void
+  onClose: () => void
+}
+
+export function SettingsPanel({
+  eyeInterval,
+  setEyeInterval,
+  stretchInterval,
+  setStretchInterval,
+  selectedModel,
+  setSelectedModel,
+  onClose,
+}: SettingsPanelProps) {
+  return (
+    <ThemeProvider theme={theme}>
+      <Paper
+        elevation={10}
+        sx={{
+          p: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2.5,
+          width: 340,
+          pointerEvents: 'auto',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }} color="text.primary">
+          Configuration
+        </Typography>
+
+        <InlineSelect
+          value={selectedModel}
+          onChange={setSelectedModel}
+          options={MODELS}
+          label="Render Entity"
+        />
+
+        <TextField
+          type="number"
+          label="Eye Rest (mins)"
+          value={eyeInterval}
+          onChange={(e) => setEyeInterval(Number(e.target.value))}
+          fullWidth
+          variant="outlined"
+          size="small"
+          helperText="20-20-20 rule recommended"
+          slotProps={{ formHelperText: { sx: { mx: 0 } } }}
+        />
+
+        <TextField
+          type="number"
+          label="Stretch Break (mins)"
+          value={stretchInterval}
+          onChange={(e) => setStretchInterval(Number(e.target.value))}
+          fullWidth
+          variant="outlined"
+          size="small"
+          helperText="60 mins recommended"
+          slotProps={{ formHelperText: { sx: { mx: 0 } } }}
+        />
+
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={onClose}
+            disableElevation
+            sx={{ px: 3, py: 1, borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+          >
+            Save Changes
+          </Button>
+        </Box>
+      </Paper>
+    </ThemeProvider>
+  )
+}
