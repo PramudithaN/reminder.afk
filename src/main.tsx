@@ -11,6 +11,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // Use contextBridge
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-window.ipcRenderer.on('main-process-message', (_event: any, message: any) => {
+window.ipcRenderer?.on('main-process-message', (_event: any, message: any) => {
   console.log(message)
 })

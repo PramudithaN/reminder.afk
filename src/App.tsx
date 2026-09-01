@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
 import { useSettings } from './hooks/useSettings'
 import { useBreakTimers } from './hooks/useBreakTimers'
+import { getModelUrl } from './constants/models'
 import { SettingsPanel } from './components/SettingsPanel'
 import { CharacterModel } from './components/CharacterModel'
 import './App.css'
@@ -60,6 +61,8 @@ export default function App() {
     zIndex: 9999,
   }
 
+  const currentModelUrl = getModelUrl(selectedModel)
+
   return (
     <div style={dimmerStyle}>
       {/* Settings Modal */}
@@ -85,21 +88,22 @@ export default function App() {
       )}
 
       {/* 3D Scene */}
-      {!showSettings && (
+      {!showSettings && activeBreak && (
         <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
 
           <group position={[6, -4, 0]}>
-            {activeBreak && (
-              <CharacterModel
-                activeBreak={activeBreak}
-                selectedModelFile={selectedModel}
-                onDismiss={() => setActiveBreak(null)}
-                onOpenSettings={() => setShowSettings(true)}
-              />
-            )}
-            <ContactShadows position={[0, -2, 0]} opacity={0.6} scale={15} blur={2.5} />
+            <CharacterModel
+              activeBreak={activeBreak}
+              selectedModelUrl={currentModelUrl}
+              modelId={selectedModel}
+              onDismiss={() => setActiveBreak(null)}
+              onOpenSettings={() => setShowSettings(true)}
+            />
+            <Suspense fallback={null}>
+              <ContactShadows position={[0, -2, 0]} opacity={0.6} scale={15} blur={2.5} />
+            </Suspense>
           </group>
         </Canvas>
       )}

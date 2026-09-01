@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import React, { Component, ReactNode, Suspense, useEffect, useRef } from 'react'
 import { Float, Html, PresentationControls, useAnimations, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { SettingsIcon } from '../icons/SettingsIcon'
+import { MODELS } from '../../constants/models'
 
 type BreakType = 'eye' | 'stretch'
 
@@ -20,17 +21,46 @@ const BREAK_CONTENT: Record<BreakType, { title: string; description: string; col
   },
 }
 
-interface CharacterModelProps {
-  activeBreak: BreakType
-  selectedModelFile: string
-  onDismiss: () => void
-  onOpenSettings: () => void
+interface ModelErrorBoundaryProps {
+  children: ReactNode
+  fallback?: ReactNode
 }
 
-export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOpenSettings }: CharacterModelProps) {
+interface ModelErrorBoundaryState {
+  hasError: boolean
+}
+
+class ModelErrorBoundary extends Component<ModelErrorBoundaryProps, ModelErrorBoundaryState> {
+  constructor(props: ModelErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(): ModelErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Failed to load or render 3D model:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null
+    }
+    return this.props.children
+  }
+}
+
+interface ModelMeshProps {
+  url: string
+  modelId: string
+}
+
+function ModelMesh({ url, modelId }: ModelMeshProps) {
   const group = useRef<THREE.Group>(null)
   const modelWrapper = useRef<THREE.Group>(null)
-  const { scene, animations } = useGLTF(`/${selectedModelFile}`)
+  const { scene, animations } = useGLTF(url)
   const { actions } = useAnimations(animations, group)
 
   // Play the first available animation
@@ -39,14 +69,14 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
     if (actionNames.length > 0 && actions[actionNames[0]]) {
       actions[actionNames[0]]?.play()
     }
-  }, [actions, selectedModelFile])
+  }, [actions, url])
 
   // Normalize model size to a consistent visual height
   useEffect(() => {
     if (!modelWrapper.current || !scene) return
 
-    if (selectedModelFile === 'robot.glb') {
-      // Robot's hardcoded scale is already perfect
+    if (modelId === 'robot.glb') {
+      // Robot's scale preset
       modelWrapper.current.scale.set(1.5, 1.5, 1.5)
       modelWrapper.current.position.set(0, -1.5, 0)
       return
@@ -61,8 +91,32 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
       modelWrapper.current.scale.setScalar(targetHeight / size.y)
       modelWrapper.current.position.set(0, -1.5, 0)
     }
-  }, [scene, selectedModelFile])
+  }, [scene, modelId])
 
+  return (
+    <group ref={group}>
+      <group ref={modelWrapper}>
+        <primitive object={scene} />
+      </group>
+    </group>
+  )
+}
+
+interface CharacterModelProps {
+  activeBreak: BreakType
+  selectedModelUrl: string
+  modelId: string
+  onDismiss: () => void
+  onOpenSettings: () => void
+}
+
+export function CharacterModel({
+  activeBreak,
+  selectedModelUrl,
+  modelId,
+  onDismiss,
+  onOpenSettings,
+}: CharacterModelProps) {
   const { title, description, color } = BREAK_CONTENT[activeBreak]
 
   return (
@@ -76,14 +130,14 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
         polar={[-Math.PI / 4, Math.PI / 4]}
         azimuth={[-Infinity, Infinity]}
       >
-        <group ref={group}>
-          <group ref={modelWrapper}>
-            <primitive object={scene} />
-          </group>
-        </group>
+        <ModelErrorBoundary>
+          <Suspense fallback={null}>
+            <ModelMesh url={selectedModelUrl} modelId={modelId} />
+          </Suspense>
+        </ModelErrorBoundary>
       </PresentationControls>
 
-      {/* HTML Speech Bubble */}
+      {/* HTML Speech Bubble - renders immediately and stays functional even if 3D model is loading */}
       <Html position={[-5.2, 2.5, 0]} center zIndexRange={[100, 0]}>
         <div
           style={{
@@ -207,7 +261,9 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
   )
 }
 
-// Preload all models at module level so they're ready when needed
-useGLTF.preload('/robot.glb')
-useGLTF.preload('/spiderman.glb')
-useGLTF.preload('/venom.glb')
+// Preload all models at module level using their resolved URLs
+MODELS.forEach((model) => {
+  if (model.url) {
+    useGLTF.preload(model.url)
+  }
+})
