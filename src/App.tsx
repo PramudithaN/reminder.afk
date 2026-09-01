@@ -8,8 +8,13 @@ import { CharacterModel } from './components/CharacterModel'
 import './App.css'
 
 export default function App() {
-  const { eyeInterval, setEyeInterval, stretchInterval, setStretchInterval, selectedModel, setSelectedModel, isMuted, setIsMuted } =
-    useSettings()
+  const {
+    eyeInterval, setEyeInterval,
+    stretchInterval, setStretchInterval,
+    selectedModel, setSelectedModel,
+    isMuted, setIsMuted,
+    launchAtStartup, setLaunchAtStartup,
+  } = useSettings()
 
   const { activeBreak, setActiveBreak } = useBreakTimers({ eyeInterval, stretchInterval, isMuted })
 
@@ -19,10 +24,28 @@ export default function App() {
 
   // Toggle Electron mouse-event pass-through based on visibility
   useEffect(() => {
-    if (window.ipcRenderer) {
-      window.ipcRenderer.send('set-ignore-mouse-events', !isVisible)
-    }
+    window.ipcRenderer?.send('set-ignore-mouse-events', !isVisible)
   }, [isVisible])
+
+  // ── Listen for IPC events sent from the tray / main process ──────────────
+  useEffect(() => {
+    if (!window.ipcRenderer) return
+
+    // Tray → "Open Settings"
+    const unsubOpen = window.ipcRenderer.on('open-settings', () => {
+      setShowSettings(true)
+    })
+
+    // Tray → "Mute/Unmute Sounds" (tray-initiated toggle)
+    const unsubMute = window.ipcRenderer.on('set-muted', (_e: Electron.IpcRendererEvent, muted: unknown) => {
+      setIsMuted(muted as boolean)
+    })
+
+    return () => {
+      unsubOpen()
+      unsubMute()
+    }
+  }, [setIsMuted])
 
   if (!isVisible) return null
 
@@ -54,6 +77,8 @@ export default function App() {
             setSelectedModel={setSelectedModel}
             isMuted={isMuted}
             setIsMuted={setIsMuted}
+            launchAtStartup={launchAtStartup}
+            setLaunchAtStartup={setLaunchAtStartup}
             onClose={() => setShowSettings(false)}
           />
         </div>

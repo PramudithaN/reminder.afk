@@ -1,4 +1,4 @@
-import { Box, Button, FormControlLabel, Paper, Switch, TextField, ThemeProvider, Typography } from '@mui/material'
+import { Box, Button, Divider, FormControlLabel, Paper, Switch, TextField, ThemeProvider, Typography } from '@mui/material'
 import { MODELS } from '../../constants/models'
 import { InlineSelect } from '../InlineSelect/InlineSelect'
 import theme from '../../theme'
@@ -12,6 +12,8 @@ interface SettingsPanelProps {
   setSelectedModel: (v: string) => void
   isMuted: boolean
   setIsMuted: (v: boolean) => void
+  launchAtStartup: boolean
+  setLaunchAtStartup: (v: boolean) => void
   onClose: () => void
 }
 
@@ -24,6 +26,8 @@ export function SettingsPanel({
   setSelectedModel,
   isMuted,
   setIsMuted,
+  launchAtStartup,
+  setLaunchAtStartup,
   onClose,
 }: SettingsPanelProps) {
   return (
@@ -44,6 +48,7 @@ export function SettingsPanel({
           Configuration
         </Typography>
 
+        {/* ── Render Entity ──────────────────────────────────── */}
         <InlineSelect
           value={selectedModel}
           onChange={setSelectedModel}
@@ -51,6 +56,7 @@ export function SettingsPanel({
           label="Render Entity"
         />
 
+        {/* ── Intervals ─────────────────────────────────────── */}
         <TextField
           type="number"
           label="Eye Rest (mins)"
@@ -75,7 +81,10 @@ export function SettingsPanel({
           slotProps={{ formHelperText: { sx: { mx: 0 } } }}
         />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+        <Divider />
+
+        {/* ── Toggles ───────────────────────────────────────── */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <FormControlLabel
             control={
               <Switch
@@ -85,12 +94,23 @@ export function SettingsPanel({
                 size="small"
               />
             }
-            label={
-              <Typography variant="body2" color="text.secondary">
-                Mute sounds
-              </Typography>
-            }
+            label={<Typography variant="body2" color="text.secondary">Mute sounds</Typography>}
           />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={launchAtStartup}
+                onChange={(e) => setLaunchAtStartup(e.target.checked)}
+                color="primary"
+                size="small"
+              />
+            }
+            label={<Typography variant="body2" color="text.secondary">Launch at startup</Typography>}
+          />
+        </Box>
+
+        {/* ── Actions ───────────────────────────────────────── */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             variant="contained"
             color="primary"

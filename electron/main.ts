@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
@@ -22,10 +22,65 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
 
-let win: BrowserWindow | null
+let win: BrowserWindow | null = null
+let tray: Tray | null = null
 
-function createWindow() {
-  console.log("Creating window...")
+// Tracks mute state in main so tray menu label stays in sync
+let trayMuted = false
+
+// ─── Tray icon (16x16 indigo circle, embedded as base64 PNG) ─────────────────
+// Replace public/tray-icon.png with your own 32x32 PNG for a custom icon.
+function getTrayIcon(): Electron.NativeImage {
+  const iconPath = path.join(process.env.VITE_PUBLIC, 'tray-icon.png')
+  const fromFile = nativeImage.createFromPath(iconPath)
+  if (!fromFile.isEmpty()) return fromFile.resize({ width: 16, height: 16 })
+
+  // Fallback: a minimal 1×1 indigo PNG encoded as base64
+  return nativeImage.createFromDataURL(
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAA' +
+    'eklEQVQ4jWNgGAWDCjD8/8/AAAAASgCqAAAAAElFTkSuQmCC'
+  )
+}
+
+// ─── Tray context menu ────────────────────────────────────────────────────────
+function buildTrayMenu(): Electron.Menu {
+  return Menu.buildFromTemplate([
+    {
+      label: 'Open Settings',
+      click: () => win?.webContents.send('open-settings'),
+    },
+    {
+      label: trayMuted ? '🔔 Unmute Sounds' : '🔕 Mute Sounds',
+      click: () => {
+        trayMuted = !trayMuted
+        win?.webContents.send('set-muted', trayMuted)
+        tray?.setContextMenu(buildTrayMenu())
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit reminder.afk',
+      click: () => {
+        app.quit()
+      },
+    },
+  ])
+}
+
+// ─── Create system tray ───────────────────────────────────────────────────────
+function createTray(): void {
+  tray = new Tray(getTrayIcon())
+  tray.setToolTip('reminder.afk — break reminder')
+  tray.setContextMenu(buildTrayMenu())
+
+  // Single-click on tray also opens settings (Windows behaviour)
+  tray.on('click', () => {
+    win?.webContents.send('open-settings')
+  })
+}
+
+// ─── Browser window ───────────────────────────────────────────────────────────
+function createWindow(): void {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     transparent: true,
@@ -35,64 +90,70 @@ function createWindow() {
     fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
-      autoplayPolicy: 'no-user-gesture-required'
+      autoplayPolicy: 'no-user-gesture-required',
     },
   })
-  
-  // Use 'screen-saver' level to render above taskbars and fullscreen apps on Windows/Mac
+
+  // Render above taskbars and fullscreen apps
   win.setAlwaysOnTop(true, 'screen-saver')
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   win.setIgnoreMouseEvents(true, { forward: true })
-  
-  // win.webContents.openDevTools()
-  console.log("Window created!")
 
-  // IPC listener for toggling mouse events from React
-  ipcMain.on('set-ignore-mouse-events', (_event, ignore) => {
-    if (win) {
-      win.setIgnoreMouseEvents(ignore, { forward: true })
-    }
+  // ── IPC handlers ────────────────────────────────────────────────────────────
+
+  // Toggle pointer-events pass-through
+  ipcMain.on('set-ignore-mouse-events', (_event, ignore: boolean) => {
+    win?.setIgnoreMouseEvents(ignore, { forward: true })
   })
 
-  // Move window to the active monitor when a break starts
+  // Move window to the monitor where the cursor currently is
   ipcMain.on('move-to-active-monitor', () => {
-    if (win) {
-      const point = screen.getCursorScreenPoint()
-      const display = screen.getDisplayNearestPoint(point)
-      win.setBounds(display.bounds)
-      win.setFullScreen(true)
-    }
+    if (!win) return
+    const point = screen.getCursorScreenPoint()
+    const display = screen.getDisplayNearestPoint(point)
+    win.setBounds(display.bounds)
+    win.setFullScreen(true)
   })
 
-  // Test active push message to Renderer-process.
+  // Sync mute state from renderer → keep tray menu label up to date
+  ipcMain.on('mute-changed', (_event, muted: boolean) => {
+    trayMuted = muted
+    tray?.setContextMenu(buildTrayMenu())
+  })
+
+  // Launch at startup toggle from renderer
+  ipcMain.on('set-launch-at-startup', (_event, enable: boolean) => {
+    app.setLoginItemSettings({
+      openAtLogin: enable,
+      // On Windows, launch the app minimised (no flash on boot)
+      args: process.platform === 'win32' ? ['--process-start-args', '"--hidden"'] : [],
+    })
+  })
+
   win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
-    // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-    win = null
-  }
+// ─── App lifecycle ────────────────────────────────────────────────────────────
+
+// Prevent the app from quitting when all windows are closed
+// (it lives in the tray instead)
+app.on('window-all-closed', (e: Event) => {
+  e.preventDefault()
 })
 
 app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow()
 })
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+  createTray()
+})
