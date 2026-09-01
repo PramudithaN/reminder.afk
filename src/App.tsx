@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, useAnimations, Float, ContactShadows, Html, PresentationControls } from '@react-three/drei'
 import * as THREE from 'three'
+import { Box, Typography, TextField, Button, Paper, ThemeProvider, createTheme } from '@mui/material'
 import './App.css'
 
 const SettingsIcon = () => (
@@ -58,6 +59,103 @@ const playAlertSound = () => {
   }
 }
 
+const muiTheme = createTheme({
+  typography: {
+    fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+  },
+  palette: {
+    primary: { main: '#6366f1' },
+    background: { paper: '#ffffff' }
+  },
+  shape: { borderRadius: 12 },
+});
+
+// Custom inline dropdown — avoids MUI Portal which breaks in Electron transparent windows
+function InlineSelect({ value, onChange, options }: {
+  value: string,
+  onChange: (v: string) => void,
+  options: { id: string, name: string }[]
+}) {
+  const [open, setOpen] = useState(false)
+  const selected = options.find(o => o.id === value)
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8.5px 14px',
+          border: open ? '2px solid #6366f1' : '1px solid rgba(0,0,0,0.23)',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          background: '#fff',
+          fontSize: '0.875rem',
+          color: '#1f2937',
+          fontFamily: 'inherit',
+          transition: 'border-color 0.15s',
+          userSelect: 'none',
+        }}
+      >
+        <span>{selected?.name ?? 'Select…'}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ color: '#6b7280', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <path d="M7 10l5 5 5-5z"/>
+        </svg>
+      </div>
+      {/* Floating label */}
+      <label style={{
+        position: 'absolute',
+        top: open || value ? '-9px' : '50%',
+        left: '10px',
+        transform: open || value ? 'translateY(0) scale(0.75)' : 'translateY(-50%) scale(1)',
+        transformOrigin: 'left',
+        background: '#fff',
+        padding: '0 4px',
+        color: open ? '#6366f1' : 'rgba(0,0,0,0.6)',
+        fontSize: '1rem',
+        transition: 'all 0.15s',
+        pointerEvents: 'none',
+      }}>
+        Render Entity
+      </label>
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          left: 0,
+          right: 0,
+          background: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          overflow: 'hidden',
+          zIndex: 10,
+        }}>
+          {options.map(o => (
+            <div
+              key={o.id}
+              onClick={() => { onChange(o.id); setOpen(false) }}
+              style={{
+                padding: '10px 16px',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                color: '#1f2937',
+                background: o.id === value ? '#f0f0ff' : 'transparent',
+                fontWeight: o.id === value ? 600 : 400,
+              }}
+              onMouseEnter={e => { if (o.id !== value) (e.currentTarget as HTMLDivElement).style.background = '#f9fafb' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = o.id === value ? '#f0f0ff' : 'transparent' }}
+            >
+              {o.name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SettingsPanel({
   eyeInterval,
   setEyeInterval,
@@ -75,119 +173,63 @@ function SettingsPanel({
   setSelectedModel: (v: string) => void,
   onClose: () => void
 }) {
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    borderRadius: '4px',
-    border: '1px solid #c4c4c4',
-    fontSize: '1rem',
-    color: '#1f2937',
-    background: '#ffffff',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-    transition: 'border-color 0.2s',
-  }
-
-  const labelStyle = {
-    position: 'absolute' as const,
-    top: '-8px',
-    left: '12px',
-    background: '#ffffff',
-    padding: '0 4px',
-    fontSize: '0.75rem',
-    color: '#3b82f6',
-    fontWeight: 500,
-    letterSpacing: '0.5px'
-  }
-
   return (
-    <div style={{
-      background: '#ffffff',
-      padding: '32px',
-      borderRadius: '8px',
-      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0,0,0,0.05)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '28px',
-      fontFamily: '"Roboto", "Segoe UI", sans-serif',
-      minWidth: '380px',
-      pointerEvents: 'auto'
-    }}>
-      <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#111827', fontWeight: 500 }}>System Configuration</h2>
-      
-      <div style={{ position: 'relative', marginTop: '8px' }}>
-        <label style={labelStyle}>RENDER ENTITY</label>
-        <select 
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-          style={{...inputStyle, cursor: 'pointer', appearance: 'none'}}
-        >
-          {MODELS.map(m => (
-            <option key={m.id} value={m.id} style={{ color: '#1f2937' }}>{m.name}</option>
-          ))}
-        </select>
-        {/* Custom dropdown arrow */}
-        <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#6b7280' }}>
-          ▼
-        </div>
-      </div>
+    <ThemeProvider theme={muiTheme}>
+      <Paper 
+        elevation={10}
+        sx={{
+          p: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2.5,
+          width: 340,
+          pointerEvents: 'auto',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }} color="text.primary">
+          Configuration
+        </Typography>
+        
+        <InlineSelect value={selectedModel} onChange={setSelectedModel} options={MODELS} />
 
-      <div style={{ position: 'relative' }}>
-        <label style={labelStyle}>OPTICAL REST INTERVAL (MIN)</label>
-        <input 
-          type="number" 
+        <TextField
+          type="number"
+          label="Eye Rest (mins)"
           value={eyeInterval}
           onChange={(e) => setEyeInterval(Number(e.target.value))}
-          style={inputStyle}
-          onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-          onBlur={(e) => e.target.style.borderColor = '#c4c4c4'}
+          fullWidth
+          variant="outlined"
+          size="small"
+          helperText="20-20-20 rule recommended"
+          slotProps={{ formHelperText: { sx: { mx: 0 } } }}
         />
-        <p style={{ margin: '6px 0 0 4px', fontSize: '0.75rem', color: '#6b7280' }}>Recommended: 20 (20-20-20 protocol)</p>
-      </div>
 
-      <div style={{ position: 'relative' }}>
-        <label style={labelStyle}>MOBILITY INTERVAL (MIN)</label>
-        <input 
-          type="number" 
+        <TextField
+          type="number"
+          label="Stretch Break (mins)"
           value={stretchInterval}
           onChange={(e) => setStretchInterval(Number(e.target.value))}
-          style={inputStyle}
-          onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-          onBlur={(e) => e.target.style.borderColor = '#c4c4c4'}
+          fullWidth
+          variant="outlined"
+          size="small"
+          helperText="60 mins recommended"
+          slotProps={{ formHelperText: { sx: { mx: 0 } } }}
         />
-        <p style={{ margin: '6px 0 0 4px', fontSize: '0.75rem', color: '#6b7280' }}>Recommended: 60</p>
-      </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-        <button 
-          onClick={onClose}
-          style={{
-            padding: '10px 24px',
-            background: '#3b82f6',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '0.95rem',
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            cursor: 'pointer',
-            transition: 'background 0.2s, box-shadow 0.2s',
-            boxShadow: '0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12)'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = '#2563eb';
-            e.currentTarget.style.boxShadow = '0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = '#3b82f6';
-            e.currentTarget.style.boxShadow = '0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12)';
-          }}
-        >
-          SAVE & DEPLOY
-        </button>
-      </div>
-    </div>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={onClose}
+            disableElevation
+            sx={{ px: 3, py: 1, borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+          >
+            Save Changes
+          </Button>
+        </Box>
+      </Paper>
+    </ThemeProvider>
   )
 }
 
@@ -451,7 +493,7 @@ function App() {
     width: '100vw', 
     height: '100vh', 
     position: 'relative', 
-    pointerEvents: 'none',
+    pointerEvents: isVisible ? 'auto' : 'none',
     background: activeBreak ? 'rgba(0, 0, 0, 0.6)' : 'transparent', // Darker for better contrast with code popup
     backdropFilter: activeBreak ? 'blur(6px)' : 'none',
     transition: 'all 0.5s ease-in-out',
@@ -461,7 +503,7 @@ function App() {
   return (
     <div style={dimmerStyle}>
       {showSettings && (
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+        <div className="modal-enter" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
           <SettingsPanel 
             eyeInterval={eyeInterval}
             setEyeInterval={setEyeInterval}
