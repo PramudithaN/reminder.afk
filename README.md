@@ -33,7 +33,7 @@ Ensure [Node.js](https://nodejs.org/) is installed on the host machine.
 ### Installation
 Clone the repository and install the required dependencies:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/PramudithaN/reminder.afk.git
 cd reminder.afk
 npm install
 ```
