@@ -87,13 +87,13 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
       <Html position={[-5.2, 2.5, 0]} center zIndexRange={[100, 0]}>
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.95)',
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${color}`,
-            borderRadius: '8px',
-            boxShadow: `0 0 20px ${color}40`,
+            background: 'rgba(16, 16, 16, 0.96)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '12px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
             pointerEvents: 'auto',
-            color: '#e5e7eb',
+            color: '#f3f4f6',
             fontFamily: '"Fira Code", "Consolas", monospace',
             padding: '24px 32px',
             minWidth: '340px',
@@ -154,7 +154,7 @@ export function CharacterModel({ activeBreak, selectedModelFile, onDismiss, onOp
                 marginTop: '-12px',
                 width: '24px',
                 height: '24px',
-                background: 'rgba(17, 24, 39, 0.95)',
+                background: 'rgba(16, 16, 16, 0.96)',
                 borderRight: `1px solid ${color}`,
                 borderBottom: `1px solid ${color}`,
                 transform: 'rotate(-45deg)',

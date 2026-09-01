@@ -28,18 +28,28 @@ let tray: Tray | null = null
 // Tracks mute state in main so tray menu label stays in sync
 let trayMuted = false
 
-// ─── Tray icon (16x16 indigo circle, embedded as base64 PNG) ─────────────────
-// Replace public/tray-icon.png with your own 32x32 PNG for a custom icon.
-function getTrayIcon(): Electron.NativeImage {
-  const iconPath = path.join(process.env.VITE_PUBLIC, 'tray-icon.png')
+// ─── Tray icon ───────────────────────────────────────────────────────────────
+function getTrayIcon(isMuted: boolean): Electron.NativeImage {
+  const iconName = isMuted ? 'mutedTrayIconAFK.png' : 'trayIconAFK.png'
+  const iconPath = path.join(process.env.VITE_PUBLIC, iconName)
   const fromFile = nativeImage.createFromPath(iconPath)
   if (!fromFile.isEmpty()) return fromFile.resize({ width: 16, height: 16 })
+
+  const fallbackPath = path.join(process.env.VITE_PUBLIC, 'tray-icon.png')
+  const fromFallback = nativeImage.createFromPath(fallbackPath)
+  if (!fromFallback.isEmpty()) return fromFallback.resize({ width: 16, height: 16 })
 
   // Fallback: a minimal 1×1 indigo PNG encoded as base64
   return nativeImage.createFromDataURL(
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAA' +
     'eklEQVQ4jWNgGAWDCjD8/8/AAAAASgCqAAAAAElFTkSuQmCC'
   )
+}
+
+function updateTray(): void {
+  if (!tray) return
+  tray.setImage(getTrayIcon(trayMuted))
+  tray.setContextMenu(buildTrayMenu())
 }
 
 // ─── Tray context menu ────────────────────────────────────────────────────────
@@ -54,7 +64,7 @@ function buildTrayMenu(): Electron.Menu {
       click: () => {
         trayMuted = !trayMuted
         win?.webContents.send('set-muted', trayMuted)
-        tray?.setContextMenu(buildTrayMenu())
+        updateTray()
       },
     },
     { type: 'separator' },
@@ -69,8 +79,8 @@ function buildTrayMenu(): Electron.Menu {
 
 // ─── Create system tray ───────────────────────────────────────────────────────
 function createTray(): void {
-  tray = new Tray(getTrayIcon())
-  tray.setToolTip('reminder.afk — break reminder')
+  tray = new Tray(getTrayIcon(trayMuted))
+  tray.setToolTip('reminder.afk | break reminder')
   tray.setContextMenu(buildTrayMenu())
 
   // Single-click on tray also opens settings (Windows behaviour)
@@ -115,10 +125,10 @@ function createWindow(): void {
     win.setFullScreen(true)
   })
 
-  // Sync mute state from renderer → keep tray menu label up to date
+  // Sync mute state from renderer → keep tray menu label and icon up to date
   ipcMain.on('mute-changed', (_event, muted: boolean) => {
     trayMuted = muted
-    tray?.setContextMenu(buildTrayMenu())
+    updateTray()
   })
 
   // Launch at startup toggle from renderer

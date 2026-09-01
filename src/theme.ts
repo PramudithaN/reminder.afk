@@ -1,14 +1,22 @@
 import { createTheme } from '@mui/material'
 
 const theme = createTheme({
-  typography: {
-    fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
-  },
   palette: {
-    primary: { main: '#6366f1' },
-    background: { paper: '#ffffff' },
+    mode: 'dark',
+    primary: { main: '#ff0000' },
+    background: {
+      default: '#101010',
+      paper: '#101010',
+    },
+    text: {
+      primary: '#e5e7eb',
+      secondary: '#9ca3af',
+    },
   },
-  shape: { borderRadius: 12 },
+  typography: {
+    fontFamily: '"Fira Code", "Consolas", "Inter", monospace',
+  },
+  shape: { borderRadius: 8 },
 })
 
 export default theme
