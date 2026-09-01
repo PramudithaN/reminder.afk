@@ -4,6 +4,7 @@ const STORAGE_KEYS = {
   eyeInterval: 'eyeInterval',
   stretchInterval: 'stretchInterval',
   selectedModel: 'selectedModel',
+  isMuted: 'isMuted',
 } as const
 
 /**
@@ -19,6 +20,9 @@ export function useSettings() {
   const [selectedModel, setSelectedModel] = useState<string>(
     () => localStorage.getItem(STORAGE_KEYS.selectedModel) || 'robot.glb'
   )
+  const [isMuted, setIsMuted] = useState<boolean>(
+    () => localStorage.getItem(STORAGE_KEYS.isMuted) === 'true'
+  )
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.eyeInterval, eyeInterval.toString())
@@ -32,6 +36,10 @@ export function useSettings() {
     localStorage.setItem(STORAGE_KEYS.selectedModel, selectedModel)
   }, [selectedModel])
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.isMuted, isMuted.toString())
+  }, [isMuted])
+
   return {
     eyeInterval,
     setEyeInterval,
@@ -39,5 +47,7 @@ export function useSettings() {
     setStretchInterval,
     selectedModel,
     setSelectedModel,
+    isMuted,
+    setIsMuted,
   }
 }

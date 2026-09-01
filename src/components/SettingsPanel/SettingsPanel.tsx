@@ -1,4 +1,4 @@
-import { Box, Button, Paper, TextField, ThemeProvider, Typography } from '@mui/material'
+import { Box, Button, FormControlLabel, Paper, Switch, TextField, ThemeProvider, Typography } from '@mui/material'
 import { MODELS } from '../../constants/models'
 import { InlineSelect } from '../InlineSelect/InlineSelect'
 import theme from '../../theme'
@@ -10,6 +10,8 @@ interface SettingsPanelProps {
   setStretchInterval: (v: number) => void
   selectedModel: string
   setSelectedModel: (v: string) => void
+  isMuted: boolean
+  setIsMuted: (v: boolean) => void
   onClose: () => void
 }
 
@@ -20,6 +22,8 @@ export function SettingsPanel({
   setStretchInterval,
   selectedModel,
   setSelectedModel,
+  isMuted,
+  setIsMuted,
   onClose,
 }: SettingsPanelProps) {
   return (
@@ -71,7 +75,22 @@ export function SettingsPanel({
           slotProps={{ formHelperText: { sx: { mx: 0 } } }}
         />
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isMuted}
+                onChange={(e) => setIsMuted(e.target.checked)}
+                color="primary"
+                size="small"
+              />
+            }
+            label={
+              <Typography variant="body2" color="text.secondary">
+                Mute sounds
+              </Typography>
+            }
+          />
           <Button
             variant="contained"
             color="primary"

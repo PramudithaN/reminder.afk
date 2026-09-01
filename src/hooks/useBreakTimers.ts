@@ -6,6 +6,7 @@ type BreakType = 'eye' | 'stretch'
 interface UseBreakTimersOptions {
   eyeInterval: number
   stretchInterval: number
+  isMuted: boolean
 }
 
 /**
@@ -13,7 +14,7 @@ interface UseBreakTimersOptions {
  * Fires an eye break and a stretch break on their respective schedules.
  * Also triggers an immediate eye break on mount for preview purposes.
  */
-export function useBreakTimers({ eyeInterval, stretchInterval }: UseBreakTimersOptions) {
+export function useBreakTimers({ eyeInterval, stretchInterval, isMuted }: UseBreakTimersOptions) {
   const [activeBreak, setActiveBreak] = useState<BreakType | null>(null)
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function useBreakTimers({ eyeInterval, stretchInterval }: UseBreakTimersO
       if (window.ipcRenderer) {
         window.ipcRenderer.send('move-to-active-monitor')
       }
-      playAlertSound()
+      if (!isMuted) playAlertSound()
       setActiveBreak(type)
     }
 
@@ -33,7 +34,7 @@ export function useBreakTimers({ eyeInterval, stretchInterval }: UseBreakTimersO
       setActiveBreak(prev => {
         if (prev === 'stretch') return 'stretch'
         if (window.ipcRenderer) window.ipcRenderer.send('move-to-active-monitor')
-        playAlertSound()
+        if (!isMuted) playAlertSound()
         return 'eye'
       })
     }, eyeMs > 0 ? eyeMs : 20 * 60 * 1000)
@@ -49,7 +50,7 @@ export function useBreakTimers({ eyeInterval, stretchInterval }: UseBreakTimersO
       clearInterval(eyeTimer)
       clearInterval(stretchTimer)
     }
-  }, [eyeInterval, stretchInterval])
+  }, [eyeInterval, stretchInterval, isMuted])
 
   return { activeBreak, setActiveBreak }
 }

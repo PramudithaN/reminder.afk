@@ -8,10 +8,10 @@ import { CharacterModel } from './components/CharacterModel'
 import './App.css'
 
 export default function App() {
-  const { eyeInterval, setEyeInterval, stretchInterval, setStretchInterval, selectedModel, setSelectedModel } =
+  const { eyeInterval, setEyeInterval, stretchInterval, setStretchInterval, selectedModel, setSelectedModel, isMuted, setIsMuted } =
     useSettings()
 
-  const { activeBreak, setActiveBreak } = useBreakTimers({ eyeInterval, stretchInterval })
+  const { activeBreak, setActiveBreak } = useBreakTimers({ eyeInterval, stretchInterval, isMuted })
 
   const [showSettings, setShowSettings] = useState(false)
 
@@ -52,6 +52,8 @@ export default function App() {
             setStretchInterval={setStretchInterval}
             selectedModel={selectedModel}
             setSelectedModel={setSelectedModel}
+            isMuted={isMuted}
+            setIsMuted={setIsMuted}
             onClose={() => setShowSettings(false)}
           />
         </div>
