@@ -5,6 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Three.js](https://img.shields.io/badge/ThreeJs-black?style=for-the-badge&logo=three.js&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 > A smart, visually engaging, and highly customizable desktop break reminder built with **Electron**, **React**, and **React Three Fiber**. 
 
@@ -66,6 +67,12 @@ Upon successful completion, the generated setup executable will be located in th
 * [React](https://reactjs.org/) & [Vite](https://vitejs.dev/) - Frontend UI and build tooling
 * [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/getting-started/introduction) & [Drei](https://github.com/pmndrs/drei) - 3D rendering pipeline and interactions
 * [Three.js](https://threejs.org/) - Core WebGL engine
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 *Maintain optimal health, stay hydrated, and resolve your Kernel Panics.*

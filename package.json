@@ -2,6 +2,8 @@
   "name": "reminder-afk",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
+  "author": "Pramuditha Nadun <pramudithanadun@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",
