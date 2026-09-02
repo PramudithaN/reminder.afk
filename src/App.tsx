@@ -1,6 +1,6 @@
 import { type CSSProperties, Suspense, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { ContactShadows } from '@react-three/drei'
+import { ContactShadows, Environment } from '@react-three/drei'
 import { useSettings } from './hooks/useSettings'
 import { useBreakTimers } from './hooks/useBreakTimers'
 import { getModelUrl } from './constants/models'
@@ -91,8 +91,12 @@ export default function App() {
       {/* 3D Scene */}
       {!showSettings && activeBreak && (
         <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+          <ambientLight intensity={0.8} />
+          <hemisphereLight intensity={0.6} groundColor="#333333" />
+          <directionalLight position={[10, 10, 5]} intensity={1.5} castShadow />
+          <Suspense fallback={null}>
+            <Environment preset="city" />
+          </Suspense>
 
           <group position={[6, -4, 0]}>
             <CharacterModel
@@ -111,3 +115,4 @@ export default function App() {
     </div>
   )
 }
+
