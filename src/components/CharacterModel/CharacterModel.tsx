@@ -79,6 +79,22 @@ function ModelMesh({ url, modelId }: ModelMeshProps) {
       // Robot's scale preset
       modelWrapper.current.scale.set(1.5, 1.5, 1.5)
       modelWrapper.current.position.set(0, -1.5, 0)
+
+      // Balance robot materials specifically so it doesn't look washed out
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          materials.forEach((mat) => {
+            if (mat instanceof THREE.MeshStandardMaterial) {
+              mat.envMapIntensity = 0.2
+              mat.roughness = 0.45
+              mat.metalness = 0.2
+              mat.needsUpdate = true
+            }
+          })
+        }
+      })
       return
     }
 
