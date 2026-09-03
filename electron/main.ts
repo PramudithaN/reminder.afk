@@ -94,7 +94,10 @@ function createWindow(): void {
   win = new BrowserWindow({
     title: '',
     titleBarStyle: 'hidden',
-    icon: path.join(process.env.VITE_PUBLIC, 'trayIconAFK.png'),
+    icon: path.join(
+      process.env.VITE_PUBLIC,
+      process.platform === 'win32' ? 'trayIconAFK.ico' : 'trayIconAFK.png',
+    ),
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -178,6 +181,12 @@ if (!gotTheLock) {
   })
 
   app.whenReady().then(() => {
+    if (process.platform === 'win32') {
+      app.setAppUserModelId('com.reminder.afk')
+    }
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.setIcon(path.join(process.env.VITE_PUBLIC, 'trayIconAFK.png'))
+    }
     createWindow()
     createTray()
   })
