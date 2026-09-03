@@ -24,3 +24,8 @@ release
 *.njsproj
 *.sln
 *.sw?
+
+# AI Agent rule files (per-repo local generated)
+AGENTS.md
+GEMINI.md
+Ag
