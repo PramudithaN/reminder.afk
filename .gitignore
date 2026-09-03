@@ -25,7 +25,7 @@ release
 *.sln
 *.sw?
 
-# AI Agent rule files (per-repo local generated)
+# AI Agent rule & template files (per-repo local generated)
 AGENTS.md
 GEMINI.md
-Ag
+templates/

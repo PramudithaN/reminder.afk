@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Universal Dynamic AI Agent Rules Generator
+ * Universal Intelligent AI Agent Rules Generator
  * 
- * Automatically analyzes any repository (Node.js, Electron, React, Next.js, Vue,
- * TypeScript, Python, Rust, Go, etc.) and dynamically generates customized
- * AGENTS.md and GEMINI.md files from templates.
+ * Deeply analyzes any codebase (Electron, React, Next.js, Vue, Svelte, Angular,
+ * Node/Express, NestJS, FastAPI, Python, Rust, Go, Three.js, Turborepo, etc.)
+ * and dynamically crafts tailored, high-standard AGENTS.md and GEMINI.md guidelines.
  * 
  * Usage:
- *   node scripts/generate-rules.mjs
+ *   node scripts/generate-rules.mjs [optional-target-path]
  */
 
 import fs from 'node:fs'
@@ -16,13 +16,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const ROOT_DIR = path.resolve(__dirname, '..')
+const targetArg = process.argv[2]
+const ROOT_DIR = targetArg ? path.resolve(process.cwd(), targetArg) : path.resolve(__dirname, '..')
 
-// ── Directory scanner for project structure ──────────────────────────────────
+// ── Directory Scanner & Tree Visualizer ──────────────────────────────────────
 const IGNORED_DIRS = new Set([
   'node_modules', '.git', 'dist', 'dist-electron', 'dist-ssr',
-  'build', 'release', '.next', '.cache', '.turbo', '.vscode', '.idea',
-  'coverage', '__pycache__', 'target', 'vendor',
+  'build', 'release', '.next', '.nuxt', '.svelte-kit', '.astro',
+  '.cache', '.turbo', '.vscode', '.idea', 'coverage', '__pycache__',
+  'target', 'vendor', '.gemini', '.antigravity',
 ])
 
 function generateDirectoryTree(dir, prefix = '', depth = 0, maxDepth = 2) {
@@ -50,17 +52,23 @@ function generateDirectoryTree(dir, prefix = '', depth = 0, maxDepth = 2) {
     const pointer = isLast ? '└── ' : '├── '
     const nextPrefix = prefix + (isLast ? '    ' : '│   ')
 
-    // Annotate common directories
+    // Contextual directory annotations
     let annotation = ''
     if (entry.name === 'electron') annotation = '                 # Electron Main Process & Preload'
-    else if (entry.name === 'src') annotation = '                      # React Renderer / Application Source'
-    else if (entry.name === 'public') annotation = '                   # Static Public Assets & Icons'
+    else if (entry.name === 'src') annotation = '                      # Application Source Code'
+    else if (entry.name === 'app') annotation = '                      # App Router / Application Core'
+    else if (entry.name === 'pages') annotation = '                    # Page Views & Routing'
+    else if (entry.name === 'public') annotation = '                   # Static Public Assets & Media'
     else if (entry.name === 'components') annotation = '           # Reusable UI & View Components'
     else if (entry.name === 'hooks') annotation = '                # Business Logic & State Hooks'
+    else if (entry.name === 'services' || entry.name === 'api') annotation = '             # API Clients & Data Services'
     else if (entry.name === 'lib' || entry.name === 'utils') annotation = '                  # Utility Functions & Helper Libraries'
     else if (entry.name === 'types') annotation = '                # TypeScript Type Declarations'
     else if (entry.name === 'constants') annotation = '            # Configuration Constants & Registries'
     else if (entry.name === 'assets') annotation = '               # Media, 3D Models & Static Files'
+    else if (entry.name === 'store' || entry.name === 'stores') annotation = '                # Global State Management'
+    else if (entry.name === 'prisma') annotation = '                   # Prisma ORM Schema & Migrations'
+    else if (entry.name === 'tests' || entry.name === '__tests__') annotation = '            # Test Suites & Specs'
 
     lines.push(`${prefix}${pointer}${entry.name}${annotation}`)
 
@@ -72,8 +80,9 @@ function generateDirectoryTree(dir, prefix = '', depth = 0, maxDepth = 2) {
   return lines
 }
 
-// ── Analyze Repository Tech Stack ───────────────────────────────────────────
-function analyzeProject(rootDir) {
+// ── Deep Codebase & Tech Stack Analyzer ─────────────────────────────────────
+function analyzeCodebase(rootDir) {
+  // Read package.json if available
   const pkgPath = path.join(rootDir, 'package.json')
   let pkg = {}
   if (fs.existsSync(pkgPath)) {
@@ -90,22 +99,90 @@ function analyzeProject(rootDir) {
   }
 
   const scripts = pkg.scripts || {}
-  const hasTs = fs.existsSync(path.join(rootDir, 'tsconfig.json')) || !!allDeps['typescript']
-  const isElectron = !!allDeps['electron'] || fs.existsSync(path.join(rootDir, 'electron'))
-  const isReact = !!allDeps['react']
-  const isNext = !!allDeps['next']
-  const isVue = !!allDeps['vue']
-  const isThree = !!allDeps['three'] || !!allDeps['@react-three/fiber']
-  const isMui = !!allDeps['@mui/material'] || !!allDeps['@emotion/react']
-  const isTailwind = !!allDeps['tailwindcss']
-  const isVite = !!allDeps['vite']
 
-  // Project naming & overview
+  // Language & Runtime
+  const hasTs = fs.existsSync(path.join(rootDir, 'tsconfig.json')) || !!allDeps['typescript']
+  const hasPy = fs.existsSync(path.join(rootDir, 'pyproject.toml')) || fs.existsSync(path.join(rootDir, 'requirements.txt'))
+  const hasRust = fs.existsSync(path.join(rootDir, 'Cargo.toml'))
+  const hasGo = fs.existsSync(path.join(rootDir, 'go.mod'))
+
+  // Desktop & Mobile Frameworks
+  const isElectron = !!allDeps['electron'] || fs.existsSync(path.join(rootDir, 'electron'))
+  const isTauri = !!allDeps['@tauri-apps/api'] || fs.existsSync(path.join(rootDir, 'src-tauri'))
+  const isReactNative = !!allDeps['react-native'] || !!allDeps['expo']
+
+  // Web Frontend Frameworks
+  const isNext = !!allDeps['next']
+  const isNextAppRouter = isNext && (fs.existsSync(path.join(rootDir, 'app')) || fs.existsSync(path.join(rootDir, 'src/app')))
+  const isRemix = !!allDeps['@remix-run/react']
+  const isAstro = !!allDeps['astro']
+  const isNuxt = !!allDeps['nuxt']
+  const isSvelteKit = !!allDeps['@sveltejs/kit'] || !!allDeps['svelte']
+  const isVue = !!allDeps['vue'] || isNuxt
+  const isAngular = !!allDeps['@angular/core']
+  const isSolid = !!allDeps['solid-js']
+  const isReact = !!allDeps['react'] || isNext || isRemix || isReactNative
+
+  // 3D / Creative Tech
+  const isThree = !!allDeps['three'] || !!allDeps['@react-three/fiber']
+  const isR3F = !!allDeps['@react-three/fiber']
+  const isDrei = !!allDeps['@react-three/drei']
+  const isPixi = !!allDeps['pixi.js']
+
+  // UI Libraries & Styling
+  const isMui = !!allDeps['@mui/material'] || !!allDeps['@emotion/react']
+  const isTailwind = !!allDeps['tailwindcss'] || fs.existsSync(path.join(rootDir, 'tailwind.config.js')) || fs.existsSync(path.join(rootDir, 'tailwind.config.ts'))
+  const isShadcn = isTailwind && fs.existsSync(path.join(rootDir, 'components.json'))
+  const isRadix = Object.keys(allDeps).some(k => k.startsWith('@radix-ui/'))
+  const isChakra = !!allDeps['@chakra-ui/react']
+  const isAntd = !!allDeps['antd']
+  const isEmotion = !!allDeps['@emotion/styled'] || !!allDeps['@emotion/react']
+  const isStyledComponents = !!allDeps['styled-components']
+
+  // State Management
+  const isRedux = !!allDeps['@reduxjs/toolkit'] || !!allDeps['redux']
+  const isZustand = !!allDeps['zustand']
+  const isJotai = !!allDeps['jotai']
+  const isTanstackQuery = !!allDeps['@tanstack/react-query'] || !!allDeps['react-query']
+  const isPinia = !!allDeps['pinia']
+
+  // Backend & Database
+  const isNest = !!allDeps['@nestjs/core']
+  const isExpress = !!allDeps['express']
+  const isFastify = !!allDeps['fastify']
+  const isHono = !!allDeps['hono']
+  const isPrisma = !!allDeps['@prisma/client'] || fs.existsSync(path.join(rootDir, 'prisma'))
+  const isDrizzle = !!allDeps['drizzle-orm']
+  const isSupabase = !!allDeps['@supabase/supabase-js']
+  const isFirebase = !!allDeps['firebase'] || !!allDeps['firebase-admin']
+
+  // Testing & Quality Tools
+  const isVitest = !!allDeps['vitest']
+  const isJest = !!allDeps['jest']
+  const isPlaywright = !!allDeps['@playwright/test']
+  const isCypress = !!allDeps['cypress']
+  const isEslint = !!allDeps['eslint'] || fs.existsSync(path.join(rootDir, '.eslintrc.cjs')) || fs.existsSync(path.join(rootDir, '.eslintrc.json'))
+
+  // Bundlers & Build
+  const isVite = !!allDeps['vite'] || fs.existsSync(path.join(rootDir, 'vite.config.ts')) || fs.existsSync(path.join(rootDir, 'vite.config.js'))
+  const isWebpack = !!allDeps['webpack']
+  const isTurborepo = !!allDeps['turbo'] || fs.existsSync(path.join(rootDir, 'turbo.json'))
+  const isElectronBuilder = !!allDeps['electron-builder'] || fs.existsSync(path.join(rootDir, 'electron-builder.json5'))
+
+  // Metadata
   const baseName = path.basename(rootDir)
   const projectName = pkg.name || baseName
-  const description = pkg.description || (isElectron 
-    ? 'A high-performance desktop application built with Electron, React, and TypeScript.'
-    : 'A modern web application and codebase.')
+  let description = pkg.description
+
+  if (!description) {
+    if (isElectron) description = 'A high-performance desktop application built with Electron, React, and TypeScript.'
+    else if (isNext) description = 'A modern full-stack web application powered by Next.js and React.'
+    else if (isReact && isVite) description = 'A fast, modern React single-page application built with Vite and TypeScript.'
+    else if (hasPy) description = 'A robust Python application and backend service.'
+    else if (hasRust) description = 'A high-performance, memory-safe Rust system application.'
+    else if (hasGo) description = 'A scalable Go cloud and backend application.'
+    else description = 'A modern, modular software application and codebase.'
+  }
 
   return {
     projectName,
@@ -114,59 +191,134 @@ function analyzeProject(rootDir) {
     pkg,
     scripts,
     hasTs,
+    hasPy,
+    hasRust,
+    hasGo,
     isElectron,
-    isReact,
+    isTauri,
+    isReactNative,
     isNext,
+    isNextAppRouter,
+    isRemix,
+    isAstro,
+    isNuxt,
+    isSvelteKit,
     isVue,
+    isAngular,
+    isSolid,
+    isReact,
     isThree,
+    isR3F,
+    isDrei,
+    isPixi,
     isMui,
     isTailwind,
+    isShadcn,
+    isRadix,
+    isChakra,
+    isAntd,
+    isEmotion,
+    isStyledComponents,
+    isRedux,
+    isZustand,
+    isJotai,
+    isTanstackQuery,
+    isPinia,
+    isNest,
+    isExpress,
+    isFastify,
+    isHono,
+    isPrisma,
+    isDrizzle,
+    isSupabase,
+    isFirebase,
+    isVitest,
+    isJest,
+    isPlaywright,
+    isCypress,
+    isEslint,
     isVite,
-    allDeps,
+    isWebpack,
+    isTurborepo,
+    isElectronBuilder,
   }
 }
 
-// ── Rule Builders ───────────────────────────────────────────────────────────
+// ── Dynamic Rule Formulators ────────────────────────────────────────────────
 
-function buildProjectOverview(info) {
+function formatProjectOverview(info) {
   const stack = []
   if (info.isElectron) stack.push('**Electron**')
-  if (info.isNext) stack.push('**Next.js**')
+  if (info.isTauri) stack.push('**Tauri**')
+  if (info.isNext) stack.push(`**Next.js (${info.isNextAppRouter ? 'App Router' : 'Pages Router'})**`)
+  else if (info.isRemix) stack.push('**Remix**')
+  else if (info.isAstro) stack.push('**Astro**')
+  else if (info.isNuxt) stack.push('**Nuxt**')
+  else if (info.isSvelteKit) stack.push('**SvelteKit**')
   else if (info.isReact) stack.push('**React 18**')
-  else if (info.isVue) stack.push('**Vue**')
+  else if (info.isVue) stack.push('**Vue 3**')
+  else if (info.isAngular) stack.push('**Angular**')
+  else if (info.isSolid) stack.push('**SolidJS**')
+
   if (info.hasTs) stack.push('**TypeScript**')
+  else if (info.hasPy) stack.push('**Python**')
+  else if (info.hasRust) stack.push('**Rust**')
+  else if (info.hasGo) stack.push('**Go**')
+
   if (info.isVite) stack.push('**Vite**')
-  if (info.isThree) stack.push('**Three.js / React Three Fiber**')
+  if (info.isThree || info.isR3F) stack.push('**Three.js / React Three Fiber**')
   if (info.isMui) stack.push('**Material UI (MUI)**')
-  if (info.isTailwind) stack.push('**Tailwind CSS**')
+  if (info.isShadcn) stack.push('**Shadcn UI**')
+  else if (info.isTailwind) stack.push('**Tailwind CSS**')
+  if (info.isPrisma) stack.push('**Prisma ORM**')
+  if (info.isSupabase) stack.push('**Supabase**')
+  if (info.isZustand) stack.push('**Zustand**')
+  else if (info.isRedux) stack.push('**Redux Toolkit**')
 
   return `**${info.projectName}** is a modern application built with ${stack.join(', ')}.\n\n` +
     `> ${info.description}`
 }
 
-function buildCodingStandards(info) {
+function formatCodingStandards(info) {
   const points = []
 
-  points.push(`1. **Senior Developer Excellence:**\n` +
-    `   - Write clean, expressive, and modular ${info.hasTs ? 'TypeScript' : 'JavaScript'} code.\n` +
-    `   - Follow strict separation of concerns across state, business logic, UI presentation, and platform APIs.`)
-
-  if (info.isElectron) {
-    points.push(`   - Maintain a strict boundary between the Electron **Main Process** (system tray, windows, display management, login items) and the **Renderer Process** (React UI, Three.js 3D scene, Web Audio synthesis).\n` +
-      `   - Never import Node.js core modules (\`fs\`, \`path\`, \`child_process\`) directly inside \`src/\`. All desktop interactions must flow through the preload bridge (\`electron/preload.ts\`).`)
-  }
-
+  // 1. Language & Clean Code
   if (info.hasTs) {
+    points.push(`1. **Senior Developer Excellence:**\n` +
+      `   - Write clean, expressive, and modular TypeScript code.\n` +
+      `   - Follow strict separation of concerns across state, business logic, UI presentation, and platform APIs.`)
+    
+    if (info.isElectron) {
+      points.push(`   - Maintain a strict boundary between the Electron **Main Process** (system tray, windows, display management, login items) and the **Renderer Process** (React UI, Three.js 3D scene, Web Audio synthesis).\n` +
+        `   - Never import Node.js core modules (\`fs\`, \`path\`, \`child_process\`) directly inside \`src/\`. All desktop interactions must flow through the preload bridge (\`electron/preload.ts\`).`)
+    } else if (info.isNextAppRouter) {
+      points.push(`   - Maintain a clear distinction between **React Server Components (RSC)** (default) and **Client Components** (\`'use client'\`).\n` +
+        `   - Keep data fetching, database access, and secure secrets inside Server Components or Server Actions.`)
+    }
+
     points.push(`2. **TypeScript & Strict Typing:**\n` +
       `   - Never use \`any\`. Always declare explicit interfaces, type unions, and type aliases.\n` +
       (info.isElectron ? `   - Maintain strict typing for all IPC channels in \`src/types/electron.d.ts\` and \`electron/main.ts\`.\n` : '') +
-      `   - Ensure \`npm run lint\` and \`npx tsc --noEmit\` always pass with 0 errors or warnings.`)
+      `   - Ensure linting and TypeScript compilation pass with 0 errors or warnings.`)
+  } else if (info.hasPy) {
+    points.push(`1. **Senior Python Architecture:**\n` +
+      `   - Follow PEP 8 style standards and strict type annotations (\`typing\`, \`pydantic\`).\n` +
+      `   - Use clear dependency injection, modular services, and structured exception handling.`)
+  } else if (info.hasRust) {
+    points.push(`1. **Idiomatic Rust Engineering:**\n` +
+      `   - Adhere to idiomatic Rust principles: proper ownership, borrowing, and zero unnecessary \`clone()\` or \`unwrap()\`. Use structured \`Result\` / \`Option\` handling with \`?\`.`)
+  } else {
+    points.push(`1. **Senior Developer Standards:**\n` +
+      `   - Write clean, modular, and self-documenting code with comprehensive separation of concerns.`)
   }
 
+  // 2. DRY & Architecture
   points.push(`3. **DRY & Single Responsibility:**\n` +
-    `   - Separate state persistence, business hooks, presentation components, and external services into dedicated modules.`)
+    `   - Decompose monolithic files into focused, reusable components, hooks, or service utilities.\n` +
+    `   - Separate state persistence, business logic, presentation components, and external integrations.`)
 
-  if (info.isThree) {
+  // 3. 3D & Heavy Asset Performance
+  if (info.isThree || info.isR3F) {
     points.push(`4. **Resilient 3D & Audio Performance:**\n` +
       `   - Always wrap 3D asset loaders (\`useGLTF\`, \`useAnimations\`) in React \`<Suspense>\` and \`<ModelErrorBoundary>\` boundaries with graceful fallbacks.\n` +
       `   - Preload all 3D models using \`useGLTF.preload()\` at module load to prevent stutter during rendering triggers.\n` +
@@ -176,7 +328,7 @@ function buildCodingStandards(info) {
   return points.join('\n')
 }
 
-function buildFrameworkRules(info) {
+function formatFrameworkRules(info) {
   const sections = []
 
   if (info.isElectron) {
@@ -191,31 +343,53 @@ function buildFrameworkRules(info) {
       `   - Keep tray context menus synchronized with live application state (mute status, startup preferences).`)
   }
 
-  if (info.isMui || info.isTailwind) {
+  if (info.isNext) {
+    sections.push(`### Next.js & React Architecture Guidelines:\n` +
+      `1. **Server vs Client Components:**\n` +
+      `   - Keep component trees as server components by default. Push \`'use client'\` to the leaves of the tree where interactivity, hooks, or browser APIs are needed.\n` +
+      `2. **Optimized Data Fetching & Caching:**\n` +
+      `   - Utilize \`fetch\` cache tags and \`revalidateTag\` for granular cache invalidation.\n` +
+      `   - Never perform expensive database queries directly in client-side effects.`)
+  }
+
+  if (info.isMui || info.isTailwind || info.isShadcn) {
     sections.push(`### UI/UX Design System:\n` +
       `1. **Consistent Visual Aesthetic:**\n` +
       `   - Maintain high-contrast, dark-mode developer aesthetics (#101010 background, vibrant accent colors, crisp monospace typography: \`"Fira Code", "Consolas", "Inter", monospace\`).\n` +
       `   - Use subtle backdrop blurs (\`backdrop-filter: blur(6px)\`) with smooth CSS transitions.`)
   }
 
-  return sections.length > 0 ? sections.join('\n\n') : `Follow standard idiomatic ${info.isReact ? 'React' : 'frontend'} design patterns and component modularity.`
+  if (info.isPrisma || info.isDrizzle || info.isSupabase) {
+    sections.push(`### Database & Persistence Guidelines:\n` +
+      `1. **Schema & Query Integrity:**\n` +
+      `   - Validate all database mutations using schema parsers (e.g. Zod / TypeBox).\n` +
+      `   - Ensure proper indexes on frequently queried relations and foreign keys.`)
+  }
+
+  return sections.length > 0 ? sections.join('\n\n') : `Follow standard idiomatic ${info.isReact ? 'React' : 'software'} design patterns and component modularity.`
 }
 
-function buildSecurityRules(info) {
+function formatSecurityRules(info) {
   const points = []
 
   if (info.isElectron) {
     points.push(`1. **Context Isolation & Sandboxing:**\n` +
       `   - Enforce \`contextIsolation: true\`, \`nodeIntegration: false\`, and \`sandbox: false\` in \`BrowserWindow\` \`webPreferences\`.\n` +
       `   - Never expose raw Node.js modules directly to the renderer.\n` +
-      `   - Only expose safe, strictly whitelisted IPC methods via \`contextBridge.exposeInMainWorld('ipcRenderer', ...)\`.`)
-    
-    points.push(`2. **IPC Message Validation:**\n` +
+      `   - Only expose safe, strictly whitelisted IPC methods via \`contextBridge.exposeInMainWorld('ipcRenderer', ...)\`.\n` +
+      `2. **IPC Message Validation:**\n` +
       `   - Validate and sanitize all arguments received by \`ipcMain.on\` and \`ipcMain.handle\`.\n` +
       `   - Never trust input from the renderer to execute arbitrary shell commands, load unverified URLs, or write to arbitrary filesystem paths.`)
   } else {
-    points.push(`1. **No Exposed Secrets:**\n` +
-      `   - Never commit sensitive credentials or private keys. Retrieve runtime configurations through environment variables.`)
+    points.push(`1. **Zero Exposed Secrets & Environment Validation:**\n` +
+      `   - Never hardcode private API keys, database credentials, or sensitive secrets in client-accessible files.\n` +
+      `   - Validate all runtime environment variables at startup.`)
+  }
+
+  if (info.isSupabase) {
+    points.push(`2. **Row-Level Security (RLS) & Authorization:**\n` +
+      `   - Ensure all database tables enforce strict Row-Level Security (RLS) policies.\n` +
+      `   - Never rely solely on client-side state for backend authorization.`)
   }
 
   if (info.isThree || info.isElectron) {
@@ -225,12 +399,12 @@ function buildSecurityRules(info) {
   }
 
   points.push(`4. **Clean Build Artifacts:**\n` +
-    `   - Keep build artifacts (\`dist\`, \`dist-electron\`, \`release\`, \`node_modules\`) ignored in \`.gitignore\`.`)
+    `   - Keep build artifacts (\`dist\`, \`dist-electron\`, \`release\`, \`node_modules\`, \`.next\`) ignored in \`.gitignore\`.`)
 
   return points.join('\n')
 }
 
-function buildVerificationRunbook(info) {
+function formatVerificationRunbook(info) {
   const steps = []
   let stepNumber = 1
 
@@ -246,26 +420,99 @@ function buildVerificationRunbook(info) {
     steps.push(`${stepNumber++}. **Production Build:**\n   \`\`\`bash\n   ${info.isVite ? 'npx vite build' : 'npm run build'}\n   \`\`\`\n   *Must bundle cleanly with zero build errors.*`)
   }
 
-  if (info.scripts['test']) {
-    steps.push(`${stepNumber++}. **Test Suite:**\n   \`\`\`bash\n   npm test\n   \`\`\`\n   *All tests must pass.*`)
+  if (info.scripts['test'] || info.isVitest || info.isJest) {
+    steps.push(`${stepNumber++}. **Test Suite:**\n   \`\`\`bash\n   npm test\n   \`\`\`\n   *All unit & integration tests must pass.*`)
   }
 
   return steps.join('\n\n')
 }
 
-// ── Main Execution ──────────────────────────────────────────────────────────
+// ── Built-in Master Template (Fallback & Standard) ──────────────────────────
+const MASTER_TEMPLATE = `# Senior Developer & Security Guidelines (Coding Agent Instructions)
+
+> **CRITICAL INSTRUCTION FOR ALL AI CODING AGENTS**:
+> Whenever you analyze, plan, edit, or refactor code in this repository (**{{PROJECT_NAME}}**), you must **strictly adhere** to all architectural best practices, security standards, UI/UX conventions, documentation maintenance, and commit conventions detailed in this document.
+
+---
+
+## 1. Project Overview & Architecture
+
+{{PROJECT_OVERVIEW}}
+
+### Project Structure & Separation of Concerns:
+\`\`\`text
+{{PROJECT_STRUCTURE}}
+\`\`\`
+
+---
+
+## 2. Professional Mindset & Clean Code Standards
+
+{{CODING_STANDARDS}}
+
+---
+
+## 3. Framework & Technical Guidelines
+
+{{FRAMEWORK_SPECIFIC_RULES}}
+
+---
+
+## 4. Zero-Vulnerability & Cybersecurity Principles
+
+{{SECURITY_RULES}}
+
+---
+
+## 5. Continuous Documentation Maintenance (README Sync)
+
+1. **Keep Documentation Synchronized:**
+   - Whenever adding new features, components, architecture changes, settings options, or build requirements, **you must update \`README.md\`** to reflect the changes.
+   - Keep technology stack listings, installation/build instructions, and environment variable notes completely accurate.
+
+---
+
+## 6. Standard Git Commit Message Conventions
+
+All commit messages in this project must follow the standard **Conventional Commits** specification:
+
+### Format:
+\`\`\`text
+<type>(<scope>): <short description in imperative mood>
+\`\`\`
+
+### Commit Types:
+* \`feat(scope):\` -> A new feature or user-facing capability (e.g. \`feat(models): add animated cyber samurai 3D model\`).
+* \`fix(scope):\` -> A bug fix or error correction (e.g. \`fix(tray): update mute icon on tray menu toggle\`).
+* \`perf(scope):\` -> Performance improvement (e.g. \`perf(three): dispose unused textures on model swap\`).
+* \`refactor(scope):\` -> Code restructuring without changing functional behavior (e.g. \`refactor(timers): extract interval calculation helper\`).
+* \`security(scope):\` -> Security hardening or IPC sanitization (e.g. \`security(ipc): validate payload structure in main process\`).
+* \`style(scope):\` -> Styling, theme, or layout tweaks (e.g. \`style(settings): refine slider contrast for dark theme\`).
+* \`docs(scope):\` -> Documentation updates (e.g. \`docs(readme): document new stretch break intervals\`).
+* \`chore(scope):\` -> Maintenance, dependencies, build configuration (e.g. \`chore(deps): update electron to latest patch release\`).
+
+---
+
+## 7. Verification & Quality Assurance Runbook
+
+Before completing any coding task, the agent must run and verify all of the following:
+
+{{VERIFICATION_RUNBOOK}}
+`
+
+// ── Generator Orchestration ─────────────────────────────────────────────────
 export function generateRules(rootDir = ROOT_DIR) {
-  console.log(`[generate-rules] Analyzing repository at: ${rootDir}`)
-  const info = analyzeProject(rootDir)
+  console.log(`[generate-rules] 🔍 Analyzing codebase at: ${rootDir}`)
+  const info = analyzeCodebase(rootDir)
 
   const treeLines = [info.baseName + '/', ...generateDirectoryTree(rootDir)]
   const projectStructure = treeLines.join('\n')
 
-  const overview = buildProjectOverview(info)
-  const codingStandards = buildCodingStandards(info)
-  const frameworkRules = buildFrameworkRules(info)
-  const securityRules = buildSecurityRules(info)
-  const verificationRunbook = buildVerificationRunbook(info)
+  const overview = formatProjectOverview(info)
+  const codingStandards = formatCodingStandards(info)
+  const frameworkRules = formatFrameworkRules(info)
+  const securityRules = formatSecurityRules(info)
+  const verificationRunbook = formatVerificationRunbook(info)
 
   const replacements = {
     '{{PROJECT_NAME}}': info.projectName,
@@ -277,46 +524,36 @@ export function generateRules(rootDir = ROOT_DIR) {
     '{{VERIFICATION_RUNBOOK}}': verificationRunbook,
   }
 
-  // Generate AGENTS.md & GEMINI.md
-  const templateTargets = [
-    { template: 'AGENTS.template.md', output: 'AGENTS.md' },
-    { template: 'GEMINI.template.md', output: 'GEMINI.md' },
+  const targets = [
+    { templateName: 'AGENTS.template.md', outputName: 'AGENTS.md' },
+    { templateName: 'GEMINI.template.md', outputName: 'GEMINI.md' },
   ]
 
   const templatesDir = path.join(rootDir, 'templates')
 
-  for (const { template, output } of templateTargets) {
-    const templatePath = path.join(templatesDir, template)
+  for (const { templateName, outputName } of targets) {
+    const templatePath = path.join(templatesDir, templateName)
     let content = ''
 
     if (fs.existsSync(templatePath)) {
       content = fs.readFileSync(templatePath, 'utf8')
     } else {
-      console.warn(`[generate-rules] Template ${template} not found in ${templatesDir}, using fallback format.`)
-      content = `# Senior Developer & Security Guidelines (Coding Agent Instructions)\n\n` +
-        `> Whenever you analyze, plan, edit, or refactor code in **{{PROJECT_NAME}}**, strictly adhere to these rules.\n\n` +
-        `## 1. Project Overview & Architecture\n\n{{PROJECT_OVERVIEW}}\n\n` +
-        `### Project Structure:\n\`\`\`text\n{{PROJECT_STRUCTURE}}\n\`\`\`\n\n` +
-        `## 2. Coding Standards\n\n{{CODING_STANDARDS}}\n\n` +
-        `## 3. Framework Guidelines\n\n{{FRAMEWORK_SPECIFIC_RULES}}\n\n` +
-        `## 4. Security Principles\n\n{{SECURITY_RULES}}\n\n` +
-        `## 5. Verification Runbook\n\n{{VERIFICATION_RUNBOOK}}\n`
+      content = MASTER_TEMPLATE
     }
 
-    // Replace all placeholders
     for (const [placeholder, value] of Object.entries(replacements)) {
       content = content.replaceAll(placeholder, value)
     }
 
-    const outputPath = path.join(rootDir, output)
+    const outputPath = path.join(rootDir, outputName)
     fs.writeFileSync(outputPath, content, 'utf8')
-    console.log(`[generate-rules] Generated ${output} successfully.`)
+    console.log(`[generate-rules] ✨ Generated ${outputName} customized for ${info.projectName}`)
   }
 
-  console.log(`[generate-rules] Completed agent rules generation!`)
+  console.log(`[generate-rules] ✅ Completed AI agent rule generation successfully!`)
 }
 
-// Run if called directly
+// Run if invoked directly from CLI
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   generateRules(ROOT_DIR)
 }
