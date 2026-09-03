@@ -500,6 +500,27 @@ Before completing any coding task, the agent must run and verify all of the foll
 {{VERIFICATION_RUNBOOK}}
 `
 
+// ── Auto-update .gitignore to ignore generated AI Agent rule files ────────────
+function ensureGitignore(rootDir, entries = ['AGENTS.md', 'GEMINI.md', 'templates/']) {
+  const gitignorePath = path.join(rootDir, '.gitignore')
+  let currentContent = ''
+  if (fs.existsSync(gitignorePath)) {
+    currentContent = fs.readFileSync(gitignorePath, 'utf8')
+  }
+
+  const missing = entries.filter(entry => {
+    const pattern = entry.replace('/', '')
+    const regex = new RegExp(`(^|\\n)\\s*${pattern}(\\/)?\\s*($|\\n)`, 'm')
+    return !regex.test(currentContent)
+  })
+
+  if (missing.length > 0) {
+    const block = `\n# AI Agent rule & template files (per-repo local generated)\n${missing.join('\n')}\n`
+    fs.writeFileSync(gitignorePath, currentContent + (currentContent.endsWith('\n') ? '' : '\n') + block, 'utf8')
+    console.log(`[generate-rules] 🛡️ Added to .gitignore: ${missing.join(', ')}`)
+  }
+}
+
 // ── Generator Orchestration ─────────────────────────────────────────────────
 export function generateRules(rootDir = ROOT_DIR) {
   console.log(`[generate-rules] 🔍 Analyzing codebase at: ${rootDir}`)
@@ -549,6 +570,9 @@ export function generateRules(rootDir = ROOT_DIR) {
     fs.writeFileSync(outputPath, content, 'utf8')
     console.log(`[generate-rules] ✨ Generated ${outputName} customized for ${info.projectName}`)
   }
+
+  // Ensure generated markdown files and templates are in .gitignore
+  ensureGitignore(rootDir)
 
   console.log(`[generate-rules] ✅ Completed AI agent rule generation successfully!`)
 }
