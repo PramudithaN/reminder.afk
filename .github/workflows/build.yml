@@ -59,8 +59,8 @@ jobs:
         with:
           name: macOS-Binaries
           path: |
-            release/**/*.dmg
-            release/**/*.zip
+            release/*/*.dmg
+            release/*/*.zip
           if-no-files-found: error
 
       - name: Upload Windows Build Artifacts
@@ -69,7 +69,8 @@ jobs:
         with:
           name: Windows-Binaries
           path: |
-            release/**/*.exe
+            release/*/*.exe
+            !release/**/win-unpacked/**
           if-no-files-found: error
 
   release:
@@ -100,9 +101,9 @@ jobs:
           TAG="${{ github.ref_name }}"
           echo "Publishing assets for tag: $TAG"
           
-          # Find all generated DMG, ZIP and EXE files
-          FILES=$(find release-assets -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" \))
-          echo "Files to attach:"
+          # Find only final installer files (excluding unpacked directories)
+          FILES=$(find release-assets -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" \) ! -path "*/win-unpacked/*" ! -path "*/mac/*" ! -path "*/mac-arm64/*")
+          echo "Final installer files to attach:"
           echo "$FILES"
 
           if [ -z "$FILES" ]; then
@@ -110,13 +111,19 @@ jobs:
             exit 1
           fi
 
-          # If release already exists, upload with --clobber and update release notes
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG exists. Uploading/updating assets..."
-            gh release upload "$TAG" $FILES --clobber
-            gh release edit "$TAG" --generate-notes
+          # Ensure the release exists first
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Creating new release $TAG..."
+            gh release create "$TAG" --generate-notes
           else
-            echo "Release $TAG does not exist. Creating new release..."
-            gh release create "$TAG" $FILES --generate-notes
+            echo "Updating notes for existing release $TAG..."
+            gh release edit "$TAG" --generate-notes
           fi
-          echo "Successfully published release assets for $TAG"
+
+          # Upload each unique artifact individually with --clobber
+          for FILE in $FILES; do
+            echo "Uploading $FILE..."
+            gh release upload "$TAG" "$FILE" --clobber
+          done
+
+          echo "Successfully published all release assets for $TAG!"
