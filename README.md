@@ -47,19 +47,23 @@ npm run dev
 
 ## Building for Production
 
-The application can be packaged into a standalone `.exe` installer, allowing it to run silently in the background on system startup without relying on a terminal instance.
+The application can be packaged into standalone installers for **Windows (`.exe`)** and **macOS (`.dmg` / `.zip`)**, allowing it to run silently in the background on system startup without relying on a terminal instance.
 
+### Local Build:
 Execute the following command:
 ```bash
 npm run build
 ```
 
+Upon successful completion, the generated binaries will be located in the `release/` directory.
+
 **Windows Build Requirements:**
-The `electron-builder` package requires administrative privileges to create symbolic links during the packaging process. If the build fails with a `Cannot create symbolic link` error, perform one of the following:
+The `electron-builder` package requires administrative privileges to create symbolic links during the packaging process on Windows. If the build fails with a `Cannot create symbolic link` error, perform one of the following:
 1. **(Recommended)** Navigate to Windows Settings -> Privacy & security -> For developers, and enable **Developer Mode**.
 2. **Alternative**: Launch your Terminal or IDE as an **Administrator** prior to running the build command.
 
-Upon successful completion, the generated setup executable will be located in the `release/` directory.
+### Automated Cloud Builds (GitHub Actions):
+The repository includes a GitHub Actions workflow (`.github/workflows/build.yml`) that automatically builds both **macOS (`.dmg` / `.zip` for Apple Silicon & Intel)** and **Windows (`.exe`)** whenever code is pushed to the repository. The installers can be downloaded directly from the GitHub Actions **Artifacts** tab.
 
 ## Technology Stack
 
