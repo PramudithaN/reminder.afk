@@ -115,9 +115,6 @@ jobs:
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             echo "Creating new release $TAG..."
             gh release create "$TAG" --generate-notes
-          else
-            echo "Updating notes for existing release $TAG..."
-            gh release edit "$TAG" --generate-notes
           fi
 
           # Upload each unique artifact individually with --clobber
