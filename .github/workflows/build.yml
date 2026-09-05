@@ -93,10 +93,30 @@ jobs:
           name: Windows-Binaries
           path: release-assets
 
-      - name: Publish All Assets & Release Notes
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release-assets/**/*
-          generate_release_notes: true
+      - name: Publish Release using Official GitHub CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "Publishing assets for tag: $TAG"
+          
+          # Find all generated DMG, ZIP and EXE files
+          FILES=$(find release-assets -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" \))
+          echo "Files to attach:"
+          echo "$FILES"
+
+          if [ -z "$FILES" ]; then
+            echo "Error: No release files found."
+            exit 1
+          fi
+
+          # If release already exists, upload with --clobber and update release notes
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists. Uploading/updating assets..."
+            gh release upload "$TAG" $FILES --clobber
+            gh release edit "$TAG" --generate-notes
+          else
+            echo "Release $TAG does not exist. Creating new release..."
+            gh release create "$TAG" $FILES --generate-notes
+          fi
+          echo "Successfully published release assets for $TAG"
