@@ -72,21 +72,23 @@ jobs:
             release/**/*.exe
           if-no-files-found: error
 
-      - name: Publish Release Assets (macOS)
+      - name: Publish Release Assets & Auto-Generate Notes (macOS)
         if: matrix.os == 'macos-latest' && (github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v'))
         uses: softprops/action-gh-release@v2
         with:
           files: |
             release/**/*.dmg
             release/**/*.zip
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish Release Assets (Windows)
+      - name: Publish Release Assets & Auto-Generate Notes (Windows)
         if: matrix.os == 'windows-latest' && (github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v'))
         uses: softprops/action-gh-release@v2
         with:
           files: |
             release/**/*.exe
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
