@@ -18,10 +18,24 @@
   "icon": "build/icon.png",
   "mac": {
     "icon": "build/icon.icns",
+    "category": "public.app-category.productivity",
     "target": [
-      "dmg"
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "zip",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
     ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    "artifactName": "${productName}-Mac-${arch}-${version}.${ext}"
   },
   "win": {
     "icon": "build/icon.ico",

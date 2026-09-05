@@ -16,8 +16,39 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const targetArg = process.argv[2]
-const ROOT_DIR = targetArg ? path.resolve(process.cwd(), targetArg) : path.resolve(__dirname, '..')
+
+/**
+ * Safely validates and canonicalizes a directory path from CLI input.
+ * Ensures the path contains no illegal characters and resolves to an existing directory.
+ */
+function getValidatedDirectory(inputPath, fallbackDir) {
+  if (!inputPath || typeof inputPath !== 'string') {
+    return path.resolve(fallbackDir)
+  }
+
+  // Reject dangerous characters, null bytes, or empty strings
+  if (inputPath.includes('\0') || inputPath.trim() === '') {
+    throw new Error('Invalid path: Contains illegal characters or empty string.')
+  }
+
+  // Canonicalize path
+  const canonicalPath = path.resolve(process.cwd(), inputPath)
+
+  // Validate that canonical path exists on filesystem and is a directory
+  if (!fs.existsSync(canonicalPath)) {
+    throw new Error(`Path does not exist: ${canonicalPath}`)
+  }
+
+  const stat = fs.statSync(canonicalPath)
+  if (!stat.isDirectory()) {
+    throw new Error(`Path is not a valid directory: ${canonicalPath}`)
+  }
+
+  return canonicalPath
+}
+
+const defaultRootDir = path.resolve(__dirname, '..')
+const ROOT_DIR = getValidatedDirectory(process.argv[2], defaultRootDir)
 
 // ── Directory Scanner & Tree Visualizer ──────────────────────────────────────
 const IGNORED_DIRS = new Set([
